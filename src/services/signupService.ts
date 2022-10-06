@@ -50,6 +50,24 @@ export class SignupService {
         })
     }
 
+    public userDelete(req: any, callback: Function) {
+        var query = req.query;
+
+        var condition: any = {
+            where: {
+                user_id: query.user_id
+            }
+        }
+        var reqData: any = {
+            status: "InActive"
+        }
+
+        commonService.update(reqData, condition, models.User, function (err: Error, response: any) {
+            if (err) return callback(err);
+            callback(null, "User Deleted")
+        })
+    }
+
 }
 
 export const signupService = new SignupService()

@@ -15,6 +15,7 @@ export class UserRouter {
 
         this.router.post("/signup", this.signupWithUser);
         this.router.post("/login", this.login);
+        this.router.put("/userdel", this.userDelete);
     }
 
     public signupWithUser(req: any, res: any) {
@@ -29,6 +30,7 @@ export class UserRouter {
         }
     }
 
+    
     public login(req: any, res: any) {
         try {
             loginService.login(req, function (err: Error, response) {
@@ -41,6 +43,17 @@ export class UserRouter {
         }
     }
 
+    public userDelete(req: any, res: any) {
+        try {
+            signupService.userDelete(req, function (err: Error, response) {
+                var commonResponse = routerResponse.objResponse(err, response, req, res);
+                res.send(commonResponse);
+            });
+        } catch (err) {
+            var commonResponse = routerResponse.objResponse(err, null, req, res);
+            res.send(commonResponse);
+        }
+    }
 
 }
 var userRouter = new UserRouter();

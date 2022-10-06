@@ -36,7 +36,7 @@ export class LoginService {
                     }
                 }
                 
-                if(userDtl.is_attempts  ==  2) {
+                if(userDtl.is_attempts  ==  2 ) {
                         userDtl.status = "InActive"
                 }
                 userDtl.is_attempts += 1;
