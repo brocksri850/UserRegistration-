@@ -57,7 +57,6 @@ export default function (sequelize: Sequelize): UserModelStatic {
         },
         is_attempts: {
             type: DataTypes.INTEGER,
-            defaultValue: 0
         }
 
     }, {

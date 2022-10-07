@@ -1,4 +1,3 @@
-import constant from "../src/common/constant";
 var cryptoJs = require('crypto-js')
 const crypto = require("crypto");
 

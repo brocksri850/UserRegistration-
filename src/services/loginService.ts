@@ -4,13 +4,14 @@ import commonService from "./commonService";
 import * as async from "async";
 import * as crypto from "crypto";
 import constant from "../common/constant";
-
 import * as  _ from "lodash";
-import { constants } from "../../build/src/common/constant";
+import { any } from "sequelize/types/lib/operators";
 
 export interface EntityAttributes { }
 
 export class LoginService {
+
+
 
     public login(req: any, callback: Function) {
 
@@ -36,16 +37,25 @@ export class LoginService {
                     }
                 }
 
-                if (userDtl.is_attempts == 2) {
-                    userDtl.status = "InActive"
+                if (userDtl.password != data.password) {
+                    if ((userDtl.is_attempts == 3) && (loginService.isDateLessFiveMinuites(userDtl.created_at))) {
+                         return callback(null,"Blocked")
+                    }
+                    else {
+                        userDtl.is_attempts += 1;
+                    }
+                } else {
+                    userDtl.is_attempts = 0
                 }
-                userDtl.is_attempts += 1;
 
-                commonService.update(userDtl, condition, models.User, function (err: Error, response: any) {
+                var reqData: any = {
+                    is_attempts: userDtl.is_attempts
+                }
+
+                commonService.update(reqData, condition, models.User, function (err: Error, response: any) {
                     if (err) return callback(err);
-                    if (response) return callback(null, "Password Incorrect");
-
-                    waterfallCallback(null, null)
+                    if (response[0] == 1) return callback(null, "Password Incorrect");
+                    waterfallCallback(null, userDtl)
                 })
             },
             function (userDtl: any, waterfallCallback: Function) {
@@ -78,27 +88,16 @@ export class LoginService {
         async.waterfall([
             function (waterfallCallback: Function) {
                 var requiredStringForJwtToken = "User#Id_" + userDtl.user_id;
-                async.parallel({
-                    accessToken: function (parallelCallback: Function) {
-                        jwtUtils.jwtSignSetWithExpireTime({ redisId: requiredStringForJwtToken }, function (err: any, token) {
-                            if (err) return waterfallCallback(new Error(constant.loginErr), null);
-                            return parallelCallback(null, token)
-                        })
-                    },
-                    refreshToken: function (parallelCallback: Function) {
-                        jwtUtils.jwtSign({ redisId: requiredStringForJwtToken }, function (err: any, token: any) {
-                            if (err) return waterfallCallback(new Error(constant.loginErr), null);
-                            return parallelCallback(null, token)
-                        })
-                    }
-                }, function (err, response) {
-                    waterfallCallback(err, response, requiredStringForJwtToken)
+
+                jwtUtils.jwtSign({ redisId: requiredStringForJwtToken }, function (err: any, token: any) {
+                    if (err) return waterfallCallback(new Error(constant.loginErr), null);
+                    return waterfallCallback(null, token, requiredStringForJwtToken)
                 })
+
             },
             function (jwtToken: any, requiredStringForJwtToken: any, waterfallCallback: Function) {
 
                 payload.accessToken = jwtToken.accessToken;
-                payload.refreshToken = jwtToken.refreshToken;
                 payload.created_dt = new Date();
                 payload.key = requiredStringForJwtToken
 
@@ -119,7 +118,17 @@ export class LoginService {
         })
     }
 
+    public isDateLessFiveMinuites(dateString: any) {
+        //new Date.parseExact(dateString, "yyyy-mm-dd hh-mm");
+        var date1 =  new Date(dateString).getTime() / 1000;
+        var date2 = new Date().getTime() / 1000;
+        if ((date2 - date1) > 300) {
+            return true
+        }
+        return false
+    }
+
 }
 
-export const loginService = new LoginService()
+export const loginService = new LoginService();
 export default loginService
