@@ -21,7 +21,7 @@ export class LoginService {
                 var condition: any = {
                     where: {
                         email: data.email,
-                        status:  "Active"
+                        status: "Active"
                     }
                 }
                 commonService.findOne(condition, models.User, function (err: Error, userDtl: any) {
@@ -32,19 +32,19 @@ export class LoginService {
             function (userDtl: any, waterfallCallback: Function) {
                 var condition: any = {
                     where: {
-                          user_id : userDtl.user_id
+                        user_id: userDtl.user_id
                     }
                 }
-                
-                if(userDtl.is_attempts  ==  2 ) {
-                        userDtl.status = "InActive"
+
+                if (userDtl.is_attempts == 2) {
+                    userDtl.status = "InActive"
                 }
                 userDtl.is_attempts += 1;
 
                 commonService.update(userDtl, condition, models.User, function (err: Error, response: any) {
-                    if(err) return callback(err);
-                    if(response) return callback(null,"Password Incorrect");
-                    
+                    if (err) return callback(err);
+                    if (response) return callback(null, "Password Incorrect");
+
                     waterfallCallback(null, null)
                 })
             },

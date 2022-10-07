@@ -50,6 +50,23 @@ export class SignupService {
         })
     }
 
+    public getAllUser(req: any, callback: Function) {
+
+        var query = req.query;
+
+        var condition: any = {
+            where: {
+            }
+        }
+
+        if (query.status) condition.where.status = query.status;
+
+        commonService.findAll(condition, models.User, function (err: Error, response: any) {
+            if (err) return callback(err);
+            callback(null, "User Deleted")
+        })
+    }
+
     public userDelete(req: any, callback: Function) {
         var query = req.query;
 
